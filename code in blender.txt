@@ -1,0 +1,63 @@
+import random
+import Rasterizer
+import GameLogic as GL
+import socket
+import select
+
+
+import threading
+import time
+import logging
+logging.basicConfig(level=logging.DEBUG,format='(%(threadName)-10s) %(message)s',)
+
+#println("Skoltech")
+
+UDP_IP = "127.0.0.1"
+UDP_PORT = 5031
+
+sock = socket.socket(socket.AF_INET, # Internet
+                     socket.SOCK_DGRAM) # UDP
+sock.bind((UDP_IP, UDP_PORT))
+sock.settimeout(1)
+
+
+sock.setblocking(0)
+timeout_in_seconds=1
+
+# Get controllers
+controller = GL.getCurrentController()
+
+# get the object this script is attached to
+owner = controller.owner
+
+# Get sensors
+#sen = controller.sensors["sen"]
+
+# Get the actuator
+act = controller.actuators["Motion1"]
+
+
+ready = select.select([sock], [], [], timeout_in_seconds)
+if ready[0]:
+    data = sock.recv(1024)
+    #print(data)
+    data = data.decode()
+    logging.debug(data)
+    if data=='dl':    
+        act.dLoc = [0,-0.3,0]
+        controller.activate(act)
+    if data=='dr':
+        act.dLoc = [0,0.3,0]
+        controller.activate(act)
+    if data=='du':
+        act.dLoc=[0,0,0.3]
+        controller.activate(act)
+    if data=='dd':
+        act.dLoc=[0,0,-0.3]
+        controller.activate(act)
+    #int(data.decode())%10
+    #bpy.context.object.location.x=
+
+
+#act.dLoc = [0,0,0]
+#controller.activate(act)
